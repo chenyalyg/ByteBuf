@@ -9,9 +9,9 @@ import (
 )
 
 type ByteBuffer struct {
-	cache *list.List
-	len int
-	mu sync.Mutex
+	cache    *list.List
+	len      int
+	mu       sync.RWMutex
 	deepcopy bool
 }
 
@@ -31,8 +31,8 @@ func (self *ByteBuffer)Len() int {
 }
 
 func (self *ByteBuffer) ReadBytes(data []byte) int {
-	self.mu.Lock()
-	defer self.mu.Unlock()
+	self.mu.RLock()
+	defer self.mu.RUnlock()
 
 	if(self.len==0){
 		return 0
@@ -60,6 +60,30 @@ func (self *ByteBuffer) ReadBytes(data []byte) int {
 	return index
 }
 
+//预读取字节
+func (self *ByteBuffer) PrvReadBytes(data []byte) int {
+	self.mu.RLock()
+	defer self.mu.RUnlock()
+
+	if(self.len==0){
+		return 0
+	}
+
+	var index=0
+	for f:=self.cache.Front();f!=nil;{
+		c_buf:=f.Value.([]byte)
+		f=f.Next()
+
+		n:=copy(data[index:],c_buf)
+		index+=n
+		if(index>= len(data)){
+			break
+		}
+	}
+
+	return index
+}
+
 func (self*ByteBuffer)check_len(size int) error {
 	if(self.len==0){
 		return errors.New("buffer is empty!")
@@ -80,6 +104,16 @@ func (self *ByteBuffer) ReadByte() (byte,error) {
 	return buf[0],nil
 }
 
+func (self *ByteBuffer) PrvReadByte() (byte,error) {
+	err:=self.check_len(1)
+	if(err!=nil){
+		return 0,err
+	}
+	buf:=make([]byte,1)
+	self.PrvReadBytes(buf)
+	return buf[0],nil
+}
+
 func (self *ByteBuffer) ReadInt16(order binary.ByteOrder) (int16,error) {
 	err:=self.check_len(2)
 	if(err!=nil){
@@ -90,6 +124,15 @@ func (self *ByteBuffer) ReadInt16(order binary.ByteOrder) (int16,error) {
 	return int16(order.Uint16(buf)),nil
 }
 
+func (self *ByteBuffer) PrvReadInt16(order binary.ByteOrder) (int16,error) {
+	err:=self.check_len(2)
+	if(err!=nil){
+		return 0,err
+	}
+	buf:=make([]byte,2)
+	self.PrvReadBytes(buf)
+	return int16(order.Uint16(buf)),nil
+}
 
 func (self *ByteBuffer) ReadInt32(order binary.ByteOrder) (int32,error) {
 	err:=self.check_len(4)
@@ -98,6 +141,16 @@ func (self *ByteBuffer) ReadInt32(order binary.ByteOrder) (int32,error) {
 	}
 	buf:=make([]byte,4)
 	self.ReadBytes(buf)
+	return int32(order.Uint32(buf)),nil
+}
+
+func (self *ByteBuffer) PrvReadInt32(order binary.ByteOrder) (int32,error) {
+	err:=self.check_len(4)
+	if(err!=nil){
+		return 0,err
+	}
+	buf:=make([]byte,4)
+	self.PrvReadBytes(buf)
 	return int32(order.Uint32(buf)),nil
 }
 
@@ -111,6 +164,16 @@ func (self *ByteBuffer) ReadInt64(order binary.ByteOrder) (int64,error) {
 	return int64(order.Uint64(buf)),nil
 }
 
+func (self *ByteBuffer) PrvReadInt64(order binary.ByteOrder) (int64,error) {
+	err:=self.check_len(8)
+	if(err!=nil){
+		return 0,err
+	}
+	buf:=make([]byte,8)
+	self.PrvReadBytes(buf)
+	return int64(order.Uint64(buf)),nil
+}
+
 func (self *ByteBuffer) ReadFloat32(order binary.ByteOrder) (float32,error) {
 	err:=self.check_len(4)
 	if(err!=nil){
@@ -118,6 +181,18 @@ func (self *ByteBuffer) ReadFloat32(order binary.ByteOrder) (float32,error) {
 	}
 	buf:=make([]byte,4)
 	self.ReadBytes(buf)
+
+	bits := order.Uint32(buf)
+	return math.Float32frombits(bits),nil
+}
+
+func (self *ByteBuffer) PrvReadFloat32(order binary.ByteOrder) (float32,error) {
+	err:=self.check_len(4)
+	if(err!=nil){
+		return 0,err
+	}
+	buf:=make([]byte,4)
+	self.PrvReadBytes(buf)
 
 	bits := order.Uint32(buf)
 	return math.Float32frombits(bits),nil
@@ -135,6 +210,17 @@ func (self *ByteBuffer) ReadFloat64(order binary.ByteOrder) (float32,error) {
 	return math.Float32frombits(bits),nil
 }
 
+func (self *ByteBuffer) PrvReadFloat64(order binary.ByteOrder) (float32,error) {
+	err:=self.check_len(8)
+	if(err!=nil){
+		return 0,err
+	}
+	buf:=make([]byte,8)
+	self.PrvReadBytes(buf)
+
+	bits := order.Uint32(buf)
+	return math.Float32frombits(bits),nil
+}
 
 func (self *ByteBuffer)WriteBytes(data []byte) {
 	var copy_buf=data

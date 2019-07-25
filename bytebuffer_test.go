@@ -9,6 +9,7 @@ import (
 func init() {
 	test1()
 	test2()
+	prv_test()
 }
 
 func test1()  {
@@ -41,7 +42,7 @@ func test2()  {
 	}
 	b_buf.WriteInt32(12345,binary.BigEndian)
 	b_buf.WriteByte(123)
-
+	b_buf.Len()
 	num,_:=b_buf.ReadFloat32(binary.BigEndian)
 	fmt.Println("num :",num)
 	buf:=make([]byte,999999*3)
@@ -51,4 +52,20 @@ func test2()  {
 	finish_time:=time.Now().Unix()
 
 	fmt.Println("use time:",finish_time-start_time)
+}
+
+func prv_test()  {
+
+	b_buf:=New(false)
+	b_buf.WriteFloat32(1,binary.BigEndian)
+	b_buf.WriteFloat32(2,binary.BigEndian)
+	b_buf.WriteFloat32(3,binary.BigEndian)
+
+	fmt.Println("buf size=", b_buf.Len())
+	num1,_:=b_buf.PrvReadFloat32(binary.BigEndian)
+	fmt.Println("num1 :",num1)
+	num2,_:=b_buf.PrvReadFloat32(binary.BigEndian)
+	fmt.Println("num2 :",num2)
+
+
 }
