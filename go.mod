@@ -1,3 +1,3 @@
-module ByteBuf
+module github.com/chenyalyg/ByteBuf
 
 go 1.12
