@@ -34,7 +34,7 @@ func (self *ByteBuffer) ReadBytes(data []byte) int {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
 
-	if(self.len==0){
+	if self.len==0 {
 		return 0
 	}
 
@@ -46,12 +46,14 @@ func (self *ByteBuffer) ReadBytes(data []byte) int {
 
 		n:=copy(data[index:],c_buf)
 		index+=n
-		if(n== len(c_buf)){
+		if n== len(c_buf) {
 			self.cache.Remove(c_node)
 		}else{
 			c_buf=c_buf[n:]
+			self.cache.InsertBefore(c_buf,c_node)
+			self.cache.Remove(c_node)
 		}
-		if(index>= len(data)){
+		if index>= len(data) {
 			break
 		}
 	}
@@ -65,7 +67,7 @@ func (self *ByteBuffer) PrvReadBytes(data []byte) int {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
 
-	if(self.len==0){
+	if self.len==0 {
 		return 0
 	}
 
