@@ -1,5 +1,5 @@
 # ByteBuf
-Speed byte cache
+高速字节缓存库,顺序的写入读取,不用在意资源的释放整理
 
 ## Installing
 ```bash
@@ -12,6 +12,8 @@ go get -u github.com/chenyalyg/ByteBuf
 package main
 
 import (
+
+  "encoding/binary"
   "fmt"
   "log"
   
@@ -19,7 +21,7 @@ import (
 )
 
 func main() {
-  buf := bytebuf.New(false)
+  buf := bytebuf.New(bytebuf.DeepCopy)
   buf.WriteInt16(12345,binary.BigEndian)
   buf.WriteInt32(12345,binary.BigEndian)
   buf.WriteFloat32(12345.22,binary.BigEndian)

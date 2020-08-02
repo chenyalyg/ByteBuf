@@ -14,7 +14,7 @@ func init() {
 
 func test1()  {
 	start_time:=time.Now().Unix()
-	b_buf:=New(false)
+	b_buf:=New(Pointer)
 
 	for i:=0;i<9999999;i++{
 		buf:=make([]byte,1500)
@@ -34,7 +34,7 @@ func test1()  {
 
 func test2()  {
 	start_time:=time.Now().Unix()
-	b_buf:=New(false)
+	b_buf:=New(DeepCopy)
 	b_buf.WriteFloat32(12345.22,binary.BigEndian)
 	for i:=0;i<999999;i++{
 		b_buf.WriteInt16(12345,binary.BigEndian)
@@ -56,7 +56,7 @@ func test2()  {
 
 func prv_test()  {
 
-	b_buf:=New(false)
+	b_buf:=New(DeepCopy)
 	b_buf.WriteFloat32(1,binary.BigEndian)
 	b_buf.WriteFloat32(2,binary.BigEndian)
 	b_buf.WriteFloat32(3,binary.BigEndian)

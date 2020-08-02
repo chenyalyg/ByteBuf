@@ -8,21 +8,27 @@ import (
 	"sync"
 )
 
+type CopyType int32
+
+const (
+	DeepCopy      CopyType = 0 //创建新的内存存放数据
+	Pointer      CopyType = 1 //
+)
+
 type ByteBuffer struct {
 	cache    *list.List
 	len      int
 	mu       sync.RWMutex
-	deepcopy bool
+	copy_type CopyType
 }
 
-//deepcopy 是否进行深度拷贝
-func New(deepcopy bool) *ByteBuffer {
+//copy_type 是否进行深度拷贝
+func New(copy_type CopyType) *ByteBuffer {
 	b_buf:= &ByteBuffer{}
 	b_buf.cache=list.New()
-	b_buf.deepcopy=deepcopy
+	b_buf.copy_type=copy_type
 	return b_buf
 }
-
 
 
 
@@ -78,7 +84,7 @@ func (self *ByteBuffer) PrvReadBytes(data []byte) int {
 
 		n:=copy(data[index:],c_buf)
 		index+=n
-		if(index>= len(data)){
+		if index>= len(data) {
 			break
 		}
 	}
@@ -87,10 +93,10 @@ func (self *ByteBuffer) PrvReadBytes(data []byte) int {
 }
 
 func (self*ByteBuffer)check_len(size int) error {
-	if(self.len==0){
+	if self.len==0 {
 		return errors.New("buffer is empty!")
 	}
-	if(self.len<size){
+	if self.len<size {
 		return errors.New("buffer is low!")
 	}
 	return nil
@@ -98,7 +104,7 @@ func (self*ByteBuffer)check_len(size int) error {
 
 func (self *ByteBuffer) ReadByte() (byte,error) {
 	err:=self.check_len(1)
-	if(err!=nil){
+	if err!=nil {
 		return 0,err
 	}
 	buf:=make([]byte,1)
@@ -108,7 +114,7 @@ func (self *ByteBuffer) ReadByte() (byte,error) {
 
 func (self *ByteBuffer) PrvReadByte() (byte,error) {
 	err:=self.check_len(1)
-	if(err!=nil){
+	if err!=nil {
 		return 0,err
 	}
 	buf:=make([]byte,1)
@@ -118,7 +124,7 @@ func (self *ByteBuffer) PrvReadByte() (byte,error) {
 
 func (self *ByteBuffer) ReadInt16(order binary.ByteOrder) (int16,error) {
 	err:=self.check_len(2)
-	if(err!=nil){
+	if err!=nil {
 		return 0,err
 	}
 	buf:=make([]byte,2)
@@ -128,7 +134,7 @@ func (self *ByteBuffer) ReadInt16(order binary.ByteOrder) (int16,error) {
 
 func (self *ByteBuffer) PrvReadInt16(order binary.ByteOrder) (int16,error) {
 	err:=self.check_len(2)
-	if(err!=nil){
+	if err!=nil {
 		return 0,err
 	}
 	buf:=make([]byte,2)
@@ -138,7 +144,7 @@ func (self *ByteBuffer) PrvReadInt16(order binary.ByteOrder) (int16,error) {
 
 func (self *ByteBuffer) ReadInt32(order binary.ByteOrder) (int32,error) {
 	err:=self.check_len(4)
-	if(err!=nil){
+	if err!=nil {
 		return 0,err
 	}
 	buf:=make([]byte,4)
@@ -148,7 +154,7 @@ func (self *ByteBuffer) ReadInt32(order binary.ByteOrder) (int32,error) {
 
 func (self *ByteBuffer) PrvReadInt32(order binary.ByteOrder) (int32,error) {
 	err:=self.check_len(4)
-	if(err!=nil){
+	if err!=nil {
 		return 0,err
 	}
 	buf:=make([]byte,4)
@@ -158,7 +164,7 @@ func (self *ByteBuffer) PrvReadInt32(order binary.ByteOrder) (int32,error) {
 
 func (self *ByteBuffer) ReadInt64(order binary.ByteOrder) (int64,error) {
 	err:=self.check_len(8)
-	if(err!=nil){
+	if err!=nil {
 		return 0,err
 	}
 	buf:=make([]byte,8)
@@ -168,7 +174,7 @@ func (self *ByteBuffer) ReadInt64(order binary.ByteOrder) (int64,error) {
 
 func (self *ByteBuffer) PrvReadInt64(order binary.ByteOrder) (int64,error) {
 	err:=self.check_len(8)
-	if(err!=nil){
+	if err!=nil {
 		return 0,err
 	}
 	buf:=make([]byte,8)
@@ -178,7 +184,7 @@ func (self *ByteBuffer) PrvReadInt64(order binary.ByteOrder) (int64,error) {
 
 func (self *ByteBuffer) ReadFloat32(order binary.ByteOrder) (float32,error) {
 	err:=self.check_len(4)
-	if(err!=nil){
+	if err!=nil {
 		return 0,err
 	}
 	buf:=make([]byte,4)
@@ -190,7 +196,7 @@ func (self *ByteBuffer) ReadFloat32(order binary.ByteOrder) (float32,error) {
 
 func (self *ByteBuffer) PrvReadFloat32(order binary.ByteOrder) (float32,error) {
 	err:=self.check_len(4)
-	if(err!=nil){
+	if err!=nil {
 		return 0,err
 	}
 	buf:=make([]byte,4)
@@ -202,7 +208,7 @@ func (self *ByteBuffer) PrvReadFloat32(order binary.ByteOrder) (float32,error) {
 
 func (self *ByteBuffer) ReadFloat64(order binary.ByteOrder) (float32,error) {
 	err:=self.check_len(8)
-	if(err!=nil){
+	if err!=nil {
 		return 0,err
 	}
 	buf:=make([]byte,8)
@@ -214,7 +220,7 @@ func (self *ByteBuffer) ReadFloat64(order binary.ByteOrder) (float32,error) {
 
 func (self *ByteBuffer) PrvReadFloat64(order binary.ByteOrder) (float32,error) {
 	err:=self.check_len(8)
-	if(err!=nil){
+	if err!=nil {
 		return 0,err
 	}
 	buf:=make([]byte,8)
@@ -226,7 +232,7 @@ func (self *ByteBuffer) PrvReadFloat64(order binary.ByteOrder) (float32,error) {
 
 func (self *ByteBuffer)WriteBytes(data []byte) {
 	var copy_buf=data
-	if(self.deepcopy){
+	if self.copy_type==DeepCopy {
 		copy_buf= make([]byte, len(data))
 		copy(copy_buf,data)
 	}
